@@ -2,12 +2,28 @@ import telebot
 from telebot import types
 import datetime
 import time
+import os
 
-BOT_TOKEN = "8708418628:AAFCqjD-DPAPQ0RM_qrraR8-BW7x-0lAJHY"
-YOUR_CHAT_ID = 7937383528
+# ===== ЧИТАЕМ ПЕРЕМЕННЫЕ ИЗ ОКРУЖЕНИЯ =====
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+YOUR_CHAT_ID = os.environ.get("YOUR_CHAT_ID")
+
+if not BOT_TOKEN or not YOUR_CHAT_ID:
+    print("❌ Ошибка: Не заданы BOT_TOKEN или YOUR_CHAT_ID!")
+    print("📌 Установите переменные окружения в Render:")
+    print("   - BOT_TOKEN = ваш_токен")
+    print("   - YOUR_CHAT_ID = ваш_id")
+    exit()
+
+YOUR_CHAT_ID = int(YOUR_CHAT_ID)
 
 bot = telebot.TeleBot(BOT_TOKEN)
-bot.remove_webhook()
+
+# Удаляем вебхук при запуске
+try:
+    bot.remove_webhook()
+except Exception as e:
+    print(f"⚠️ Ошибка удаления вебхука: {e}")
 
 user_data = {}
 
@@ -53,7 +69,7 @@ def callback_handler(call):
             "• Мониторинг статуса персонажа\n"
             "• Уведомления о важных событиях\n"
             "• Быстрый доступ к игровой информации\n\n"
-            "",
+            "⚠️ <i>Учебная демонстрационная версия</i>",
             parse_mode="HTML"
         )
 
@@ -106,16 +122,27 @@ def get_password(message):
         parse_mode="HTML"
     )
 
+@bot.message_handler(func=lambda message: True)
+def echo_all(message):
+    bot.send_message(
+        message.chat.id,
+        "❓ Напишите /start чтобы начать"
+    )
+
 if __name__ == "__main__":
-    print("=" * 40)
+    print("=" * 50)
     print("🚀 БОТ МАТРЁШКА РП ЗАПУЩЕН!")
-    print("=" * 40)
-    print("📱 Напишите /start в боте")
-    print("=" * 40)
+    print("=" * 50)
+    print(f"🤖 Бот: @{bot.get_me().username}")
+    print(f"📨 Данные будут приходить в: {YOUR_CHAT_ID}")
+    print("=" * 50)
+    print("🔄 Ожидание сообщений...")
+    print("=" * 50)
     
     while True:
         try:
-            bot.polling(none_stop=True, timeout=20)
+            bot.polling(none_stop=True, interval=1, timeout=30)
         except Exception as e:
             print(f"❌ Ошибка: {e}")
+            print("🔄 Перезапуск через 5 секунд...")
             time.sleep(5)
